@@ -1,11 +1,9 @@
 from flask import Flask, request, jsonify
 from login import loginPage
+# from keep_alive import keep_alive
 app = Flask(__name__)
 
-
-@app.route('/')
-def home():
-    return '<h1>Server For Our SCI APP...</h1>'
+# keep_alive()
 
 
 @app.route('/login', methods=['POST'])
@@ -20,3 +18,12 @@ def login():
         return jsonify({"error": error_message}), 500
 
     return jsonify(extracted_data)
+
+
+# if __name__ == "__main__":
+#     app.run(debug=True)
+
+
+@app.route('/')
+def home():
+    return '<h1>Server For Our SCI APP...</h1>'
