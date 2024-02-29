@@ -1,9 +1,8 @@
 from flask import Flask, request, jsonify
 from login import loginPage
-# from keep_alive import keep_alive
-app = Flask(__name__)
+from natiga import get_natiga
 
-# keep_alive()
+app = Flask(__name__)
 
 
 @app.route('/login', methods=['POST'])
@@ -20,8 +19,20 @@ def login():
     return jsonify(extracted_data)
 
 
-# if __name__ == "__main__":
-#     app.run(debug=True)
+@app.route('/natiga', methods=['POST'])
+def natiga():
+    try:
+        data = request.get_json()
+        ID = data['id']
+        print("ID:", ID)
+        code = data['code']
+        print("code:", code)
+        extracted_data = get_natiga(ID, code)
+    except Exception as e:
+        error_message = "Internal Server Error: {}".format(str(e))
+        return jsonify({"error": error_message}), 500
+
+    return extracted_data
 
 
 @app.route('/')
