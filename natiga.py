@@ -1,8 +1,9 @@
 import requests
-from requests.exceptions import RequestException
+# from requests.exceptions import RequestException
 from bs4 import BeautifulSoup
 import sys
-from flask import jsonify
+from flask import Flask, request, jsonify
+import time
 
 
 def get_natiga(ID, code):
@@ -26,122 +27,130 @@ def get_natiga(ID, code):
     term_gpa_list = []
     term_hours_list = []
 
-    res = requests.post(
-        'https://studentactivities.zu.edu.eg/Students/Registration/ed_login.aspx'
-    )
-    html = res.text
-    soup = BeautifulSoup(html, 'html.parser')
-    viewstate_input = soup.find('input', {'name': '__VIEWSTATE'})
-    viewstate_value = viewstate_input['value']
-    viewstate_generator_input = soup.find(
-        'input', {'name': '__VIEWSTATEGENERATOR'})
-    event_validation_input = soup.find('input', {'name': '__EVENTVALIDATION'})
-    viewstate_generator_value = viewstate_generator_input['value']
-    event_validation_value = event_validation_input['value']
-    cookies = res.cookies
-
-    cookie_strings = []
-
-    for cookie in cookies:
-        cookie_strings.append(f"{cookie.name}={cookie.value}")
-
-    url = "https://studentactivities.zu.edu.eg/Students/Registration/ed_login.aspx"
-
-    headers = {
-        "cookie": f"{cookie_strings[0]}",
-        "content-length": "1022",
-        "sec-ch-ua": '"Chromium";v="121", "Not A(Brand";v="99"',
-        "content-type": "application/x-www-form-urlencoded; charset=UTF-8",
-        "cache-control": "no-cache",
-        "x-microsoftajax": "Delta=true",
-        "sec-ch-ua-mobile": "?0",
-        "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.6167.85 Safari/537.36",
-        "sec-ch-ua-platform": '"Windows"',
-        "accept": "*/*",
-        "origin": "https://studentactivities.zu.edu.eg",
-        "sec-fetch-site": "same-origin",
-        "sec-fetch-mode": "cors",
-        "sec-fetch-dest": "empty",
-        "referer": "https://studentactivities.zu.edu.eg/Students/Registration/ed_login.aspx",
-        "accept-encoding": "gzip, deflate, br",
-        "accept-language": "en-US,en;q=0.9",
-        "priority": "u=1, i"
-    }
-
-    # Form data
-    data = {
-        "ctl00$ScriptManager1": "ctl00$cntphmaster$panal1|ctl00$cntphmaster$btn_Login",
-        "ctl00$cntphmaster$txt_StudCode": f"{code}",
-        "ctl00$cntphmaster$txt_Nationalnum": f"{ID}",
-        "__LASTFOCUS": "",
-        "__EVENTTARGET": "",
-        "__EVENTARGUMENT": "",
-        "__VIEWSTATE": f"{viewstate_value}",
-        "__VIEWSTATEGENERATOR": f"{viewstate_generator_value}",
-        "__EVENTVALIDATION": f"{event_validation_value}",
-        "__ASYNCPOST": "true",
-        "ctl00$cntphmaster$btn_Login": "تسجيل دخول",
-    }
-
-    response = requests.post(url, headers=headers, data=data)
-
-    url1 = "https://studentactivities.zu.edu.eg/Students/Registration/ED/OR_MAIN_PAGE.aspx"
-    headers1 = {
-        "cookie": f"{cookie_strings[0]}",
-        "content-length": "1522",
-        "sec-ch-ua": '"Chromium";v="121", "Not A(Brand";v="99"',
-        "content-type": "application/x-www-form-urlencoded; charset=UTF-8",
-        "cache-control": "no-cache",
-        "x-microsoftajax": "Delta=true",
-        "sec-ch-ua-mobile": "?0",
-        "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.6167.85 Safari/537.36",
-        "sec-ch-ua-platform": '"Windows"',
-        "accept": "*/*",
-        "origin": "https://studentactivities.zu.edu.eg",
-        "sec-fetch-site": "same-origin",
-        "sec-fetch-mode": "cors",
-        "sec-fetch-dest": "empty",
-        "referer": "https://studentactivities.zu.edu.eg/Students/Registration/ED/OR_MAIN_PAGE.aspx",
-        "accept-encoding": "gzip, deflate, br",
-        "accept-language": "en-US,en;q=0.9",
-        "priority": "u=1, i"
-    }
-
-    data1 = {
-        "ctl00$ScriptManager1": "ctl00$paneltbl|ctl00$lbDET_ACAD_SHEET_AR",
-        "__EVENTTARGET": "ctl00$lbDET_ACAD_SHEET_AR",
-        "__EVENTARGUMENT": "",
-        "__VIEWSTATE": f"{viewstate_value}",
-        "__VIEWSTATEGENERATOR": f"{viewstate_generator_value}",
-        "__EVENTVALIDATION": f"{event_validation_value}",
-        "__ASYNCPOST": "true",
-    }
-
-    response1 = requests.post(url1, headers=headers1, data=data1)
-
-    url2 = "https://studentactivities.zu.edu.eg/Students/Registration/ED/DET_ACAD_SHEET_AR.aspx"
-    headers2 = {
-        "cookie": f"{cookie_strings[0]}",
-        "sec-ch-ua": '"Chromium";v="121", "Not A(Brand";v="99"',
-        "sec-ch-ua-mobile": "?0",
-        "sec-ch-ua-platform": '"Windows"',
-        "upgrade-insecure-requests": "1",
-        "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.6167.85 Safari/537.36",
-        "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
-        "sec-fetch-site": "same-origin",
-        "sec-fetch-mode": "navigate",
-        "sec-fetch-user": "?1",
-        "sec-fetch-dest": "document",
-        "referer": "https://studentactivities.zu.edu.eg/Students/Registration/ED/OR_MAIN_PAGE.aspx",
-        "accept-encoding": "gzip, deflate, br",
-        "accept-language": "en-US,en;q=0.9",
-        "priority": "u=0, i"
-    }
-
-    max_retries = 15
-    retry_count = 0
-    while retry_count < max_retries:
+    while True:
         try:
+            res=requests.post(
+                    'https://studentactivities.zu.edu.eg/Students/Registration/ed_login.aspx'
+                )
+            html = res.text
+            soup = BeautifulSoup(html, 'html.parser')
+            viewstate_input = soup.find('input', {'name': '__VIEWSTATE'})
+            viewstate_value = viewstate_input['value']
+            viewstate_generator_input = soup.find('input',
+                                                    {'name': '__VIEWSTATEGENERATOR'})
+            event_validation_input = soup.find('input', {'name': '__EVENTVALIDATION'})
+            viewstate_generator_value = viewstate_generator_input['value']
+            event_validation_value = event_validation_input['value']
+            cookies = res.cookies
+
+            cookie_strings = []
+
+            for cookie in cookies:
+                cookie_strings.append(f"{cookie.name}={cookie.value}")
+
+            url = "https://studentactivities.zu.edu.eg/Students/Registration/ed_login.aspx"
+
+            headers = {
+                "cookie": f"{cookie_strings[0]}",
+                "content-length": "1022",
+                "sec-ch-ua": '"Chromium";v="121", "Not A(Brand";v="99"',
+                "content-type": "application/x-www-form-urlencoded; charset=UTF-8",
+                "cache-control": "no-cache",
+                "x-microsoftajax": "Delta=true",
+                "sec-ch-ua-mobile": "?0",
+                "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.6167.85 Safari/537.36",
+                "sec-ch-ua-platform": '"Windows"',
+                "accept": "*/*",
+                "origin": "https://studentactivities.zu.edu.eg",
+                "sec-fetch-site": "same-origin",
+                "sec-fetch-mode": "cors",
+                "sec-fetch-dest": "empty",
+                "referer": "https://studentactivities.zu.edu.eg/Students/Registration/ed_login.aspx",
+                "accept-encoding": "gzip, deflate, br",
+                "accept-language": "en-US,en;q=0.9",
+                "priority": "u=1, i"
+            }
+
+            # Form data
+            data = {
+                "ctl00$ScriptManager1": "ctl00$cntphmaster$panal1|ctl00$cntphmaster$btn_Login",
+                "ctl00$cntphmaster$txt_StudCode": f"{code}",
+                "ctl00$cntphmaster$txt_Nationalnum": f"{ID}",
+                "__LASTFOCUS": "",
+                "__EVENTTARGET": "",
+                "__EVENTARGUMENT": "",
+                "__VIEWSTATE": f"{viewstate_value}",
+                "__VIEWSTATEGENERATOR": f"{viewstate_generator_value}",
+                "__EVENTVALIDATION": f"{event_validation_value}",
+                "__ASYNCPOST": "true",
+                "ctl00$cntphmaster$btn_Login": "تسجيل دخول",
+            }
+
+            response = requests.post(url, headers=headers, data=data)
+
+
+            url1 = "https://studentactivities.zu.edu.eg/Students/Registration/ED/OR_MAIN_PAGE.aspx"
+            headers1 = {
+                "cookie": f"{cookie_strings[0]}",
+                "content-length": "1522",
+                "sec-ch-ua": '"Chromium";v="121", "Not A(Brand";v="99"',
+                "content-type": "application/x-www-form-urlencoded; charset=UTF-8",
+                "cache-control": "no-cache",
+                "x-microsoftajax": "Delta=true",
+                "sec-ch-ua-mobile": "?0",
+                "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.6167.85 Safari/537.36",
+                "sec-ch-ua-platform": '"Windows"',
+                "accept": "*/*",
+                "origin": "https://studentactivities.zu.edu.eg",
+                "sec-fetch-site": "same-origin",
+                "sec-fetch-mode": "cors",
+                "sec-fetch-dest": "empty",
+                "referer": "https://studentactivities.zu.edu.eg/Students/Registration/ED/OR_MAIN_PAGE.aspx",
+                "accept-encoding": "gzip, deflate, br",
+                "accept-language": "en-US,en;q=0.9",
+                "priority": "u=1, i"
+            }
+
+            data1 = {
+                "ctl00$ScriptManager1": "ctl00$paneltbl|ctl00$lbDET_ACAD_SHEET_AR",
+                "__EVENTTARGET": "ctl00$lbDET_ACAD_SHEET_AR",
+                "__EVENTARGUMENT": "",
+                "__VIEWSTATE": f"{viewstate_value}",
+                "__VIEWSTATEGENERATOR": f"{viewstate_generator_value}",
+                "__EVENTVALIDATION": f"{event_validation_value}",
+                "__ASYNCPOST": "true",
+            }
+
+            response1 = requests.post(url1, headers=headers1, data=data1)
+
+
+
+
+
+
+
+
+            url2 = "https://studentactivities.zu.edu.eg/Students/Registration/ED/DET_ACAD_SHEET_AR.aspx"
+            headers2 = {
+            
+                "cookie": f"{cookie_strings[0]}",
+                "sec-ch-ua": '"Chromium";v="121", "Not A(Brand";v="99"',
+                "sec-ch-ua-mobile": "?0",
+                "sec-ch-ua-platform": '"Windows"',
+                "upgrade-insecure-requests": "1",
+                "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.6167.85 Safari/537.36",
+                "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
+                "sec-fetch-site": "same-origin",
+                "sec-fetch-mode": "navigate",
+                "sec-fetch-user": "?1",
+                "sec-fetch-dest": "document",
+                "referer": "https://studentactivities.zu.edu.eg/Students/Registration/ED/OR_MAIN_PAGE.aspx",
+                "accept-encoding": "gzip, deflate, br",
+                "accept-language": "en-US,en;q=0.9",
+                "priority": "u=0, i"
+            }
+
+
             response2 = requests.get(url2, headers=headers2)
             response2.raise_for_status()  # Raise an HTTPError for bad responses
 
@@ -152,11 +161,16 @@ def get_natiga(ID, code):
 
             # If the request is successful, break out of the loop
             break
-        except (RequestException, AttributeError) as e:
-            retry_count += 1
-            if retry_count >= max_retries:
-                print("Faild Get Natiga Try Again")
-                sys.exit()
+        except Exception as e:
+            print(e)
+            time.sleep(5)
+            
+            
+
+        
+
+
+
 
     url3 = GetnategaUrl
 
@@ -178,14 +192,15 @@ def get_natiga(ID, code):
     }
 
     response3 = requests.get(url3, headers=headers3)
-    natigaUrl = ""
+    natigaUrl=""
     soup3 = BeautifulSoup(response3.text, 'html.parser')
     frame_tag = soup3.find('frame', id='report')
     if frame_tag:
         src1_attribute_value = frame_tag.get('src')
-        natigaUrl = "https://studentactivities.zu.edu.eg"+src1_attribute_value
+        natigaUrl="https://studentactivities.zu.edu.eg"+src1_attribute_value
     else:
         print("No frame tag with id 'report' found.")
+
 
     headers4 = {
         "cookie": f"{cookie_strings[0]}",
@@ -204,15 +219,14 @@ def get_natiga(ID, code):
         "priority": "u=0, i",
     }
 
-    response4 = requests.get(natigaUrl, headers=headers4)
-    maxx = 5
-    retry = 0
-    while "ASP.NET session has expired" in response4.text and retry < maxx:
-        retry += 1
+
+
+    while True:
         response4 = requests.get(natigaUrl, headers=headers4)
-
-    data = response4.text
-
+        if "ASP.NET session has expired" not in response4.text:
+            data=response4.text
+            break
+        
     soup = BeautifulSoup(data, 'html.parser')
     numbers = soup.find(
         'div', {'id': 'oReportDiv'})
@@ -234,7 +248,7 @@ def get_natiga(ID, code):
 
             term_total_list.append([div.text.strip() for div in term_total])
             term_percent_list.append([div.text.strip()
-                                      for div in term_percent])
+                                        for div in term_percent])
             term_gpa_list.append([div.text.strip() for div in term_gpa])
             term_hours_list.append([div.text.strip() for div in term_hours])
 
