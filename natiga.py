@@ -1,8 +1,6 @@
 import requests
-# from requests.exceptions import RequestException
 from bs4 import BeautifulSoup
-import sys
-from flask import Flask, request, jsonify
+from flask import jsonify
 import time
 
 
@@ -29,16 +27,17 @@ def get_natiga(ID, code):
 
     while True:
         try:
-            res=requests.post(
-                    'https://studentactivities.zu.edu.eg/Students/Registration/ed_login.aspx'
-                )
+            res = requests.post(
+                'https://studentactivities.zu.edu.eg/Students/Registration/ed_login.aspx'
+            )
             html = res.text
             soup = BeautifulSoup(html, 'html.parser')
             viewstate_input = soup.find('input', {'name': '__VIEWSTATE'})
             viewstate_value = viewstate_input['value']
             viewstate_generator_input = soup.find('input',
-                                                    {'name': '__VIEWSTATEGENERATOR'})
-            event_validation_input = soup.find('input', {'name': '__EVENTVALIDATION'})
+                                                  {'name': '__VIEWSTATEGENERATOR'})
+            event_validation_input = soup.find(
+                'input', {'name': '__EVENTVALIDATION'})
             viewstate_generator_value = viewstate_generator_input['value']
             event_validation_value = event_validation_input['value']
             cookies = res.cookies
@@ -88,7 +87,6 @@ def get_natiga(ID, code):
 
             response = requests.post(url, headers=headers, data=data)
 
-
             url1 = "https://studentactivities.zu.edu.eg/Students/Registration/ED/OR_MAIN_PAGE.aspx"
             headers1 = {
                 "cookie": f"{cookie_strings[0]}",
@@ -123,16 +121,9 @@ def get_natiga(ID, code):
 
             response1 = requests.post(url1, headers=headers1, data=data1)
 
-
-
-
-
-
-
-
             url2 = "https://studentactivities.zu.edu.eg/Students/Registration/ED/DET_ACAD_SHEET_AR.aspx"
             headers2 = {
-            
+
                 "cookie": f"{cookie_strings[0]}",
                 "sec-ch-ua": '"Chromium";v="121", "Not A(Brand";v="99"',
                 "sec-ch-ua-mobile": "?0",
@@ -150,7 +141,6 @@ def get_natiga(ID, code):
                 "priority": "u=0, i"
             }
 
-
             response2 = requests.get(url2, headers=headers2)
             response2.raise_for_status()  # Raise an HTTPError for bad responses
 
@@ -164,13 +154,6 @@ def get_natiga(ID, code):
         except Exception as e:
             print(e)
             time.sleep(5)
-            
-            
-
-        
-
-
-
 
     url3 = GetnategaUrl
 
@@ -192,15 +175,14 @@ def get_natiga(ID, code):
     }
 
     response3 = requests.get(url3, headers=headers3)
-    natigaUrl=""
+    natigaUrl = ""
     soup3 = BeautifulSoup(response3.text, 'html.parser')
     frame_tag = soup3.find('frame', id='report')
     if frame_tag:
         src1_attribute_value = frame_tag.get('src')
-        natigaUrl="https://studentactivities.zu.edu.eg"+src1_attribute_value
+        natigaUrl = "https://studentactivities.zu.edu.eg"+src1_attribute_value
     else:
         print("No frame tag with id 'report' found.")
-
 
     headers4 = {
         "cookie": f"{cookie_strings[0]}",
@@ -219,14 +201,12 @@ def get_natiga(ID, code):
         "priority": "u=0, i",
     }
 
-
-
     while True:
         response4 = requests.get(natigaUrl, headers=headers4)
         if "ASP.NET session has expired" not in response4.text:
-            data=response4.text
+            data = response4.text
             break
-        
+
     soup = BeautifulSoup(data, 'html.parser')
     numbers = soup.find(
         'div', {'id': 'oReportDiv'})
@@ -248,7 +228,7 @@ def get_natiga(ID, code):
 
             term_total_list.append([div.text.strip() for div in term_total])
             term_percent_list.append([div.text.strip()
-                                        for div in term_percent])
+                                      for div in term_percent])
             term_gpa_list.append([div.text.strip() for div in term_gpa])
             term_hours_list.append([div.text.strip() for div in term_hours])
 

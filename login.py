@@ -5,6 +5,7 @@ LOGIN_PAGE_URL = 'http://scistudent.eps.zu.edu.eg/(X(1)S(ocgyf1qhaxaijvus5aa0fsg
 
 
 def loginPage(id, code):
+    ispaid = True
     html = requests.post(
         LOGIN_PAGE_URL
     ).text
@@ -68,12 +69,16 @@ def loginPage(id, code):
     input_values = {}
     subject_names = []
     # Loop through each tr element
-    for tr in dv_subjects.find_all('tr'):
-        td_subject_name = tr.find_all('td')
-        if len(td_subject_name) > 4:
-            name = td_subject_name[4].get_text(strip=True)
-            subject_names.append(name)
-
+    try:
+        for tr in dv_subjects.find_all('tr'):
+            td_subject_name = tr.find_all('td')
+            if len(td_subject_name) > 4:
+                name = td_subject_name[4].get_text(strip=True)
+                subject_names.append(name)
+    except:
+        subject_names = []
+    if "ContentPlaceHolder1_divMessage" in response2.text:
+        ispaid = False
     if search_form:
         txt_phase = search_form.find(
             'input', {'id': 'ContentPlaceHolder1_txtPhase'})
@@ -90,10 +95,10 @@ def loginPage(id, code):
             'input', {'id': 'ContentPlaceHolder1_txtCode'})
         if txt_code:
             input_values['txtCode'] = txt_code.get('value')
-
     return {
         "fullName": input_values['txtFullName'],
         "code": input_values['txtCode'],
         "level": input_values['txtPhase'],
-        "subjectsName": subject_names
+        "subjectsName": subject_names,
+        "BooksPaid": ispaid
     }
