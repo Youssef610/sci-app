@@ -1,6 +1,6 @@
 import requests
 from bs4 import BeautifulSoup
-from flask import jsonify
+import json
 
 
 def get_register(code, ID):
@@ -191,55 +191,68 @@ def get_register(code, ID):
                 "POST", url3, headers=headers3, data=payload3)
             if "error" not in response3.text:
                 selectSupTable = response3.text
-                if "error" not in response3.text:
-                    soup = BeautifulSoup(selectSupTable, 'html.parser')
-                    # Student Subjects
-                    target_div = soup.find(
-                        'table', id='ctl00_cntphmaster_grdEdStudSubjectPhase')
-                    StudSubject = []
-                    AllSubject = []
-                    if target_div:
-                        tr_elements = target_div.find_all('tr')
-                        for tr in tr_elements[1:]:
-                            td_elements = tr.find_all('td')
-                            index = td_elements[3].text.strip()
-                            name = td_elements[2].text.strip()
-                            group = td_elements[4].text.strip()
-                            section = td_elements[5].text.strip()
-                            StudSubject.append({
-                                "index": index,
-                                "name": name,
-                                "group": group,
-                                "section": section,
-                            })
-                    else:
-                        print("Target div not found.")
-                    # All Data
-                    table = soup.find(
-                        'table', {'id': 'ctl00_cntphmaster_grdEdSubject'})
-                    if table:
-                        rows = table.find_all('tr')
-                        grdEdSubject = []
-                        for row in rows[1:-1]:
-                            # Find all th (header) and td (data) elements
-                            cols = row.find_all(['th', 'td'])
-                            cols_data = []
-                            for col in cols:
-                                col_text = col.text.strip()
-                                input_tag = col.find('input')
-                                if input_tag:
-                                    value_attr = input_tag.get('value', '')
-                                    cols_data.append({value_attr})
-                                else:
-                                    cols_data.append(col_text)
-                            if cols_data:
-                                # Append data to the list
-                                grdEdSubject.append(cols_data)
-                    else:
-                        print("Table not found!")
-                break
-        except:
+                soup = BeautifulSoup(selectSupTable, 'html.parser')
+                # Student Subjects
+                target_div = soup.find(
+                    'table', id='ctl00_cntphmaster_grdEdStudSubjectPhase')
+                StudSubject = []
+                AllSubject = []
+                if target_div:
+                    tr_elements = target_div.find_all('tr')
+                    for tr in tr_elements[1:]:
+                        td_elements = tr.find_all('td')
+                        index = td_elements[3].text.strip()
+                        name = td_elements[2].text.strip()
+                        group = td_elements[4].text.strip()
+                        section = td_elements[5].text.strip()
+                        StudSubject.append({
+                            "index": index,
+                            "name": name,
+                            "group": group,
+                            "section": section,
+                        })
+                else:
+                    return "Target div not found."
+                # All Data
+                table = soup.find(
+                    'table', {'id': 'ctl00_cntphmaster_grdEdSubject'})
+                if table:
+                    rows = table.find_all('tr')
+                    grdEdSubject = []
+                    for row in rows[1:-1]:
+                        # Find all th (header) and td (data) elements
+                        cols = row.find_all(['th', 'td'])
+                        cols_data = []
+                        for col in cols:
+                            col_text = col.text.strip()
+                            input_tag = col.find('input')
+                            if input_tag:
+                                value_attr = input_tag.get('value', '')
+                                cols_data.append({value_attr})
+                            else:
+                                cols_data.append(col_text)
+                        if cols_data:
+                            # Append data to the list
+                            grdEdSubject.append(cols_data)
+                        
+                else:
+                    return"Table not found!"
+                
+
+
+                data = {
+                    'StudSubject':StudSubject,
+
+                    'AllSubject': grdEdSubject
+                }
+                data['AllSubject'] = [list(item[0]) + item[1:] for item in data['AllSubject']]
+                json_data = json.dumps(data, ensure_ascii=False)
+                return json_data
+            
+
+                
+            else:
+                continue
+                
+        except Exception as e:
             continue
-    print(grdEdSubject)
-    print(StudSubject)
-    return jsonify({"StudSubject": StudSubject, "AllSubject": AllSubject})
